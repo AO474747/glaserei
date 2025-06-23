@@ -329,6 +329,15 @@ async function sendEmail() {
     const templateID = 'template_4yzhd0q'; // Ersetzen Sie dies mit Ihrer Template-ID von EmailJS
     const publicKey = 'ia3YBTzlRJq2D9Bgx';    // Ersetzen Sie dies mit Ihrem Public Key von https://dashboard.emailjs.com/admin/account
 
+    console.log('=== EmailJS Debug Info ===');
+    console.log('EmailJS verfügbar:', typeof emailjs !== 'undefined');
+    if (typeof emailjs !== 'undefined') {
+        console.log('EmailJS Version:', emailjs.version);
+    }
+    console.log('Service ID:', serviceID);
+    console.log('Template ID:', templateID);
+    console.log('Public Key:', publicKey);
+
     const anrede = getSelectedAnrede();
     const einleitung = currentAnalysis.personalisierteEinleitung;
     
@@ -355,6 +364,8 @@ async function sendEmail() {
         to_email: currentAnalysis.kontakt.email
     };
 
+    console.log('Template Parameters:', templateParams);
+
     try {
         // EmailJS ist bereits in index.html initialisiert
         console.log('Sende E-Mail mit folgenden Parametern:', {
@@ -373,7 +384,8 @@ async function sendEmail() {
         console.error('Error Details:', {
             status: error.status,
             text: error.text,
-            response: error.response
+            response: error.response,
+            message: error.message
         });
         alert(`Fehler beim Senden der E-Mail: ${error.text || error.message || JSON.stringify(error)}`);
     }
@@ -438,3 +450,39 @@ document.addEventListener('DOMContentLoaded', () => {
       clearButton.addEventListener('click', clearHistory);
     }
 });
+
+// Test-Funktion für EmailJS-Konfiguration
+async function testEmailJS() {
+    console.log('Teste EmailJS-Konfiguration...');
+    
+    try {
+        // Prüfe ob EmailJS geladen ist
+        if (typeof emailjs === 'undefined') {
+            throw new Error('EmailJS ist nicht geladen');
+        }
+        
+        console.log('EmailJS ist verfügbar');
+        console.log('EmailJS Version:', emailjs.version);
+        
+        // Teste die Initialisierung
+        const testPublicKey = 'ia3YBTzlRJq2D9Bgx';
+        emailjs.init({ publicKey: testPublicKey });
+        
+        console.log('EmailJS wurde initialisiert');
+        
+        // Teste einen einfachen API-Aufruf
+        const testParams = {
+            message: 'Test E-Mail'
+        };
+        
+        console.log('Sende Test-E-Mail...');
+        const result = await emailjs.send('service_t0x6h2t', 'template_4yzhd0q', testParams);
+        console.log('Test erfolgreich:', result);
+        
+        alert('EmailJS-Test erfolgreich!');
+        
+    } catch (error) {
+        console.error('EmailJS-Test fehlgeschlagen:', error);
+        alert(`EmailJS-Test fehlgeschlagen: ${error.text || error.message}`);
+    }
+}
