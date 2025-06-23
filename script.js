@@ -215,6 +215,9 @@ Antworte NUR mit den 3 Einleitungsvarianten, ohne weitere Erklärungen.`
     parsedResponse.einleitungsVarianten = varianten;
     parsedResponse.personalisierteEinleitung = varianten.variante1; // Standard: erste Variante
     
+    // E-Mail-Text im Ausgabebereich anzeigen
+    document.getElementById('mail-output').innerText = varianten.variante1;
+    
     currentAnalysis = parsedResponse;
     
     // Anzeige der analysierten Daten
