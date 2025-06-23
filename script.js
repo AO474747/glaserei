@@ -324,14 +324,16 @@ async function sendEmail() {
         return;
     }
 
-    const serviceID = 'service_x5l4g8p';
-    const templateID = 'template_2h44i6l'; 
-    const publicKey = 'ia3YBTzlRJq2D9Bgx';
+    // Diese Werte sollten mit deinem EmailJS-Konto übereinstimmen
+    const serviceID = 'service_x5l4g8p'; // Dein Service-ID
+    const templateID = 'template_2h44i6l'; // Dein Template-ID
+    const publicKey = 'ia3YBTzlRJq2D9Bgx';    // Dein Public Key
 
     const anrede = getSelectedAnrede();
     const einleitung = currentAnalysis.personalisierteEinleitung;
     
     // Erstelle den vollständigen HTML-Body für die Vorlage
+    // Dieser ganze Block wird in die {{message}} Variable im EmailJS-Template eingefügt
     const emailBody = `
         <p>${anrede},</p>
         <p>${einleitung}</p>
@@ -339,15 +341,28 @@ async function sendEmail() {
     `;
 
     const templateParams = {
-        to_email: currentAnalysis.kontakt.email,
+        // Der 'to_email' wird direkt im EmailJS Dashboard konfiguriert (Reply-To)
+        // oder kann hier übergeben werden, wenn die Vorlage es erwartet.
+        // In unserem Fall wird die Empfänger-Mail im Dashboard oder der API festgelegt.
+        
+        // Der Betreff wird im EmailJS Template definiert. Wir können ihn hier dynamisch übergeben.
         betreff: `Ihr Online-Konfigurator für Glas-Anfragen | ${currentAnalysis.firmenname || 'Ihr Betrieb'}`,
-        email_body: emailBody,
+        
+        // Der wichtigste Teil: Der gesamte HTML-Inhalt wird an die 'message' Variable gesendet
+        message: emailBody,
+        
+        // Wir fügen auch die Ziel-E-Mail hinzu, falls sie im Template verwendet wird (z.B. für "Senden an")
+        to_email: currentAnalysis.kontakt.email
     };
 
     try {
+        // Initialisierung ist in der index.html, kann hier aber sicherheitshalber bleiben
         emailjs.init({ publicKey: publicKey });
+        
         await emailjs.send(serviceID, templateID, templateParams);
+        
         alert('E-Mail erfolgreich gesendet!');
+        
     } catch (error) {
         console.error('Fehler beim Senden der E-Mail:', error);
         alert(`Fehler beim Senden der E-Mail: ${JSON.stringify(error)}`);
