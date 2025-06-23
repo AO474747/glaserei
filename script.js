@@ -301,15 +301,19 @@ function getSelectedAnrede() {
 
 function showPreview() {
     if (!currentAnalysis) return;
-    const previewContent = document.getElementById('email-preview-content');
+    const previewContent = document.getElementById('preview-modal-body');
+    if (!previewContent) {
+        console.error('Preview-Modal-Element nicht gefunden');
+        return;
+    }
     const anrede = getSelectedAnrede();
     const einleitung = currentAnalysis.personalisierteEinleitung;
     previewContent.innerHTML = `<p>${anrede},</p><p>${einleitung}</p>${emailTemplate}`;
-    document.getElementById('email-preview-modal').style.display = 'flex';
+    document.getElementById('preview-modal').style.display = 'flex';
 }
 
 function closePreviewModal() {
-    document.getElementById('email-preview-modal').style.display = 'none';
+    document.getElementById('preview-modal').style.display = 'none';
 }
 
 function copyToClipboard() {
@@ -374,61 +378,42 @@ async function sendEmail() {
         return;
     }
 
-    // Diese Werte sollten mit deinem EmailJS-Konto übereinstimmen
-    const serviceID = 'service_t0x6h2t'; // Ersetzen Sie dies mit Ihrer Service-ID von EmailJS
-    const templateID = 'template_4yzhd0q'; // Ersetzen Sie dies mit Ihrer Template-ID von EmailJS
-    const publicKey = 'N-WiC9QPXh158LTC7';    // Ersetzen Sie dies mit Ihrem Public Key von https://dashboard.emailjs.com/admin/account
-
-    console.log('=== EmailJS Debug Info ===');
-    console.log('EmailJS verfügbar:', typeof emailjs !== 'undefined');
-    if (typeof emailjs !== 'undefined') {
-        console.log('EmailJS Version:', emailjs.version);
-    }
-    console.log('Service ID:', serviceID);
-    console.log('Template ID:', templateID);
-    console.log('Public Key:', publicKey);
-
     const anrede = getSelectedAnrede();
     const einleitung = currentAnalysis.personalisierteEinleitung;
     
-    // Erstelle den vollständigen HTML-Body für die Vorlage
-    // Dieser ganze Block wird in die {{message}} Variable im EmailJS-Template eingefügt
-    const emailBody = `
-        <p>${anrede},</p>
-        <p>${einleitung}</p>
-        ${emailTemplate}
-    `;
+    // Erstelle den vollständigen E-Mail-Inhalt
+    const emailContent = `
+${anrede},
 
-    const templateParams = {
-        // Das Template erwartet NUR {{message}} - keine weiteren Variablen!
-        // Alle Inhalte müssen in der message-Variable zusammengefasst werden
-        message: emailBody
-    };
+${einleitung}
 
-    console.log('Template Parameters:', templateParams);
+${emailTemplate}
+    `.trim();
 
+    // Kopiere den E-Mail-Inhalt in die Zwischenablage
     try {
-        // EmailJS ist bereits in index.html initialisiert
-        console.log('Sende E-Mail mit folgenden Parametern:', {
-            serviceID,
-            templateID,
-            templateParams
-        });
+        await navigator.clipboard.writeText(emailContent);
         
-        const result = await emailjs.send(serviceID, templateID, templateParams);
-        console.log('EmailJS Antwort:', result);
+        // Zeige Erfolgsmeldung mit Anweisungen
+        const recipientEmail = currentAnalysis.kontakt.email;
+        const subject = 'Angebot für Ihre Glaserei-Dienstleistungen';
         
-        alert('E-Mail erfolgreich gesendet!');
+        alert(`✅ E-Mail-Inhalt wurde in die Zwischenablage kopiert!
+
+📧 Nächste Schritte:
+1. Öffnen Sie Ihren E-Mail-Client
+2. Erstellen Sie eine neue E-Mail an: ${recipientEmail}
+3. Betreff: ${subject}
+4. Fügen Sie den Inhalt aus der Zwischenablage ein (Cmd+V / Strg+V)
+5. Senden Sie die E-Mail
+
+Der E-Mail-Inhalt ist jetzt in Ihrer Zwischenablage verfügbar.`);
         
     } catch (error) {
-        console.error('Fehler beim Senden der E-Mail:', error);
-        console.error('Error Details:', {
-            status: error.status,
-            text: error.text,
-            response: error.response,
-            message: error.message
-        });
-        alert(`Fehler beim Senden der E-Mail: ${error.text || error.message || JSON.stringify(error)}`);
+        console.error('Fehler beim Kopieren in Zwischenablage:', error);
+        
+        // Fallback: Zeige Modal mit E-Mail-Inhalt
+        showEmailContentModal(emailContent, currentAnalysis.kontakt.email);
     }
 }
 
@@ -491,42 +476,6 @@ document.addEventListener('DOMContentLoaded', () => {
       clearButton.addEventListener('click', clearHistory);
     }
 });
-
-// Test-Funktion für EmailJS-Konfiguration
-async function testEmailJS() {
-    console.log('Teste EmailJS-Konfiguration...');
-    
-    try {
-        // Prüfe ob EmailJS geladen ist
-        if (typeof emailjs === 'undefined') {
-            throw new Error('EmailJS ist nicht geladen');
-        }
-        
-        console.log('EmailJS ist verfügbar');
-        console.log('EmailJS Version:', emailjs.version);
-        
-        // Teste die Initialisierung
-        const testPublicKey = 'N-WiC9QPXh158LTC7';
-        emailjs.init({ publicKey: testPublicKey });
-        
-        console.log('EmailJS wurde initialisiert');
-        
-        // Teste einen einfachen API-Aufruf
-        const testParams = {
-            message: 'Test E-Mail'
-        };
-        
-        console.log('Sende Test-E-Mail...');
-        const result = await emailjs.send('service_t0x6h2t', 'template_4yzhd0q', testParams);
-        console.log('Test erfolgreich:', result);
-        
-        alert('EmailJS-Test erfolgreich!');
-        
-    } catch (error) {
-        console.error('EmailJS-Test fehlgeschlagen:', error);
-        alert(`EmailJS-Test fehlgeschlagen: ${error.text || error.message}`);
-    }
-}
 
 // Modal-Funktion für E-Mail-Inhalt (Fallback)
 function showEmailContentModal(emailContent, recipientEmail) {

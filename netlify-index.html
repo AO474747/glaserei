@@ -168,46 +168,13 @@
       <button id="changeAnredeBtn" style="display: none; background-color: #ffc107; color: black;">👤 Anrede ändern</button>
       <button id="previewMailBtn" style="display: none; background-color: #17a2b8;">👁️ E-Mail Vorschau</button>
       <button id="copyMailBtn" style="display: none; background-color: #28a745;">📋 In Zwischenablage kopieren</button>
-      <button id="sendMailBtn" style="display: none; background-color: #dc3545;">📤 E-Mail senden</button>
-      
-      <button id="configTestBtn" style="display: none; background-color: #6f42c1; color: white;">🔧 EmailJS-Konfiguration testen</button>
+      <button id="sendMailBtn" style="display: none; background-color: #dc3545;">📧 E-Mail-Inhalt kopieren</button>
       
       <div id="mail-output" style="margin-top: 15px; white-space: pre-wrap; background: #f1f1f1; padding: 1rem; border-radius: 6px; font-family: monospace;"></div>
-      
-      <!-- E-Mail Vorschau Modal -->
-      <div id="previewModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-        <div style="background-color: white; margin: 5% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; max-height: 80%; overflow-y: auto;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0;">📧 E-Mail Vorschau</h3>
-            <button onclick="closePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">✕ Schließen</button>
-          </div>
-          
-          <div style="border: 1px solid #ddd; padding: 20px; border-radius: 6px; background: #f9f9f9;">
-            <div style="margin-bottom: 15px;">
-              <strong>An:</strong> <span id="preview-to"></span><br>
-              <strong>Betreff:</strong> <span id="preview-subject"></span>
-            </div>
-            <div id="preview-content" style="font-family: Arial, sans-serif; line-height: 1.5; color: #222; background: white; padding: 20px; border-radius: 4px; border: 1px solid #eee;"></div>
-          </div>
-          
-          <div style="margin-top: 20px; text-align: center;">
-            <button onclick="sendFromPreview()" style="background-color: #dc3545; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-right: 10px;">📤 E-Mail senden</button>
-            <button onclick="closePreviewModal()" style="background-color: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px;">❌ Abbrechen</button>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
   <!-- Force re-deploy -->
-  <!-- EmailJS SDK -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <script type="text/javascript">
-    (function() {
-      emailjs.init("ia3YBTzlRJq2D9Bgx");
-    })();
-  </script>
-  <script src="./emailjs-config.js"></script>
   <script src="./script.js"></script>
   
   <div class="container" style="margin-top: 2rem;">
