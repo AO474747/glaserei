@@ -356,16 +356,26 @@ async function sendEmail() {
     };
 
     try {
-        // Initialisierung ist in der index.html, kann hier aber sicherheitshalber bleiben
-        emailjs.init({ publicKey: publicKey });
+        // EmailJS ist bereits in index.html initialisiert
+        console.log('Sende E-Mail mit folgenden Parametern:', {
+            serviceID,
+            templateID,
+            templateParams
+        });
         
-        await emailjs.send(serviceID, templateID, templateParams);
+        const result = await emailjs.send(serviceID, templateID, templateParams);
+        console.log('EmailJS Antwort:', result);
         
         alert('E-Mail erfolgreich gesendet!');
         
     } catch (error) {
         console.error('Fehler beim Senden der E-Mail:', error);
-        alert(`Fehler beim Senden der E-Mail: ${JSON.stringify(error)}`);
+        console.error('Error Details:', {
+            status: error.status,
+            text: error.text,
+            response: error.response
+        });
+        alert(`Fehler beim Senden der E-Mail: ${error.text || error.message || JSON.stringify(error)}`);
     }
 }
 
