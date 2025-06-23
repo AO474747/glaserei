@@ -51,7 +51,7 @@
       </div>
     </div>
     
-    <div id="history-section" class="history-container">
+    <div id="history-section" class="history-container" style="display:none;">
       <h3>📜 Analyse-Verlauf</h3>
       <p>Hier sehen Sie Ihre letzten Analysen. Klicken Sie auf einen Eintrag, um ihn erneut zu laden.</p>
       <ul id="history-list"></ul>
@@ -68,6 +68,13 @@
   </div>
   
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function(){
+      emailjs.init({
+        publicKey: "ia3YBTzlRJq2D9Bgx",
+      });
+    })();
+  </script>
   <script src="script.js"></script>
 </body>
 </html> 
