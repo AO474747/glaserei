@@ -71,7 +71,7 @@ function saveHistoryToStorage() {
 async function analyseGlasereiDaten() {
   const apiKey = document.getElementById('openaiApiKey').value.trim();
   const impressumText = document.getElementById('impressumText').value.trim();
-  const kundeninfoText = document.getElementById('kundeninfoText').value.trim();
+  const ueberUnsText = document.getElementById('ueberUnsText').value.trim();
   const output = document.getElementById('output');
   
   if (!apiKey) {
@@ -79,12 +79,15 @@ async function analyseGlasereiDaten() {
     return;
   }
 
-  if (!impressumText && !kundeninfoText) {
-    output.innerHTML = '<p style="color: red;">Bitte geben Sie mindestens Impressum oder Kundeninformationen ein.</p>';
+  if (!impressumText && !ueberUnsText) {
+    output.innerHTML = '<p style="color: red;">Bitte geben Sie mindestens Impressum- oder „Über uns“-Text ein.</p>';
     return;
   }
 
+  const combinedText = `${impressumText}\n\n${ueberUnsText}`.trim();
+
   output.innerHTML = '<p>🔍 Analysiere Daten...</p>';
+  document.getElementById('analysis-output-section').style.display = 'block';
 
   try {
     // Erste API-Anfrage für Datenanalyse
@@ -105,8 +108,7 @@ async function analyseGlasereiDaten() {
             role: "user",
             content: `Analysiere die folgenden Glaserei-Daten und extrahiere strukturierte Informationen:
 
-${impressumText ? `IMPRESSUM:\n${impressumText}\n\n` : ''}
-${kundeninfoText ? `KUNDENINFORMATIONEN:\n${kundeninfoText}\n\n` : ''}
+${combinedText}
 
 Extrahiere folgende Informationen im JSON-Format:
 {
@@ -130,7 +132,7 @@ Antworte nur mit dem JSON-Objekt, ohne zusätzlichen Text.`
     if (!analysisResponse.ok) throw new Error(`HTTP error! status: ${analysisResponse.status}`);
     const analysisData = await analysisResponse.json();
     const parsedResponse = JSON.parse(analysisData.choices[0].message.content);
-    parsedResponse.ueberUnsText = kundeninfoText || impressumText;
+    parsedResponse.originalText = combinedText;
     
     // Zweite API-Anfrage für Einleitungsvarianten
     const einleitungResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -164,8 +166,7 @@ VARIANTE 2: Regionale/örtliche Verbindung
 VARIANTE 3: Leistungsfokus
 
 TEXT DER GLASEREI:
-${impressumText}
-${kundeninfoText}
+${combinedText}
 
 Antworte NUR mit den 3 Einleitungsvarianten, ohne weitere Erklärungen.`
           }
@@ -233,8 +234,8 @@ function displayAnalysis(data) {
     tableContent += createRow('Besonderheiten', data.besonderheiten);
     tableContent += '</table>';
 
-    if (data.ueberUnsText) {
-        tableContent += `<h4>Originaltext ("Über uns" / Impressum)</h4><div class="original-text-box">${data.ueberUnsText}</div>`;
+    if (data.originalText) {
+        tableContent += `<h4>Originaltext (Impressum / Über uns)</h4><div class="original-text-box">${data.originalText}</div>`;
     }
 
     output.innerHTML = tableContent;
