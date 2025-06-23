@@ -327,7 +327,7 @@ async function sendEmail() {
     // Diese Werte sollten mit deinem EmailJS-Konto übereinstimmen
     const serviceID = 'service_t0x6h2t'; // Ersetzen Sie dies mit Ihrer Service-ID von EmailJS
     const templateID = 'template_4yzhd0q'; // Ersetzen Sie dies mit Ihrer Template-ID von EmailJS
-    const publicKey = 'ia3YBTzlRJq2D9Bgx';    // Ersetzen Sie dies mit Ihrem Public Key von https://dashboard.emailjs.com/admin/account
+    const publicKey = 'N-WiC9QPXh158LTC7';    // Ersetzen Sie dies mit Ihrem Public Key von https://dashboard.emailjs.com/admin/account
 
     console.log('=== EmailJS Debug Info ===');
     console.log('EmailJS verfügbar:', typeof emailjs !== 'undefined');
@@ -465,7 +465,7 @@ async function testEmailJS() {
         console.log('EmailJS Version:', emailjs.version);
         
         // Teste die Initialisierung
-        const testPublicKey = 'ia3YBTzlRJq2D9Bgx';
+        const testPublicKey = 'N-WiC9QPXh158LTC7';
         emailjs.init({ publicKey: testPublicKey });
         
         console.log('EmailJS wurde initialisiert');
