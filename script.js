@@ -238,75 +238,76 @@ function displayAnalysis(data) {
     }
 
     output.innerHTML = tableContent;
+
+    // Einleitungsvarianten anzeigen
+    const variantenContainer = document.getElementById('einleitung-varianten');
+    variantenContainer.innerHTML = Object.entries(data.einleitungsVarianten).map(([key, value], index) => `
+        <div class="einleitung-variante">
+            <input type="radio" id="${key}" name="einleitung-variante" value="${key}" ${index === 0 ? 'checked' : ''}>
+            <label for="${key}">${value}</label>
+        </div>
+    `).join('');
+
+    // Anrede-Optionen anzeigen
+    const anredeContainer = document.getElementById('anrede-optionen');
+    anredeContainer.innerHTML = '';
+    if (data.inhaber) {
+        anredeContainer.innerHTML += `
+            <div class="anrede-option">
+                <input type="radio" id="anrede-person" name="anrede-option" value="person" checked>
+                <label for="anrede-person">Person: Sehr geehrte/r Herr/Frau ${data.inhaber}</label>
+            </div>`;
+    }
+    if (data.firmenname) {
+        anredeContainer.innerHTML += `
+            <div class="anrede-option">
+                <input type="radio" id="anrede-firma" name="anrede-option" value="firma" ${!data.inhaber ? 'checked' : ''}>
+                <label for="anrede-firma">Firma: Sehr geehrte Damen und Herren der Firma ${data.firmenname}</label>
+            </div>`;
+    }
+    anredeContainer.innerHTML += `
+        <div class="anrede-option">
+            <input type="radio" id="anrede-allgemein" name="anrede-option" value="allgemein">
+            <label for="anrede-allgemein">Allgemein: Sehr geehrte Damen und Herren</label>
+        </div>`;
+    
     document.getElementById('analysis-output-section').style.display = 'block';
 }
 
 function showMailGenerator() {
-    document.getElementById('impressum-input-section').style.display = 'none';
-    document.getElementById('analysis-output-section').style.display = 'none';
-    document.getElementById('history-section').style.display = 'none';
+    document.getElementById('impressum-input-section').style.display = 'block'; 
     document.getElementById('mail-generator-section').style.display = 'block';
-    document.getElementById('email-content-section').style.display = 'none';
-
-    const data = currentAnalysis;
-    if (!data) return;
-
-    const variantenContainer = document.getElementById('einleitung-varianten');
-    variantenContainer.innerHTML = '';
-    for (const key in data.einleitungsVarianten) {
-        if (data.einleitungsVarianten.hasOwnProperty(key)) {
-            const variante = data.einleitungsVarianten[key];
-            const radioId = `variante-${key}`;
-            variantenContainer.innerHTML += `<div class="einleitung-variante"><input type="radio" id="${radioId}" name="einleitung-variante" value="${key}" ${key === 'variante1' ? 'checked' : ''}><label for="${radioId}">${variante}</label></div>`;
-        }
-    }
-    
-    document.querySelectorAll('input[name="einleitung-variante"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten[radio.value];
-        });
-    });
-
-    const anredeContainer = document.getElementById('anrede-optionen');
-    anredeContainer.innerHTML = `
-        <div class="anrede-option"><input type="radio" id="anrede-person" name="anrede-option" value="person" checked><label for="anrede-person">Person: Sehr geehrte/r Herr/Frau ${data.inhaber || '...'}</label></div>
-        <div class="anrede-option"><input type="radio" id="anrede-firma" name="anrede-option" value="firma"><label for="anrede-firma">Firma: Sehr geehrte Damen und Herren der Firma ${data.firmenname || '...'}</label></div>
-        <div class="anrede-option"><input type="radio" id="anrede-allgemein" name="anrede-option" value="allgemein"><label for="anrede-allgemein">Allgemein: Sehr geehrte Damen und Herren</label></div>
-    `;
-
-    document.getElementById('generate-mail-button').style.display = 'inline-block';
 }
 
 function generateAndShowEmailContent() {
     if (!currentAnalysis) return;
 
-    const selectedEinleitungKey = document.querySelector('input[name="einleitung-variante"]:checked')?.value;
-    currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten[selectedEinleitungKey || 'variante1'];
+    // Personalisierte Einleitung aktualisieren
+    const selectedEinleitungKey = document.querySelector('input[name="einleitung-variante"]:checked').value;
+    currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten[selectedEinleitungKey];
     
     const anrede = getSelectedAnrede();
     const personalisierteEinleitung = currentAnalysis.personalisierteEinleitung;
 
-    const fullEmailBody = `<p>${anrede},</p><p>${personalisierteEinleitung}</p>${emailTemplate}`;
+    const fullEmailBody = `
+        <p>${anrede},</p>
+        <p>${personalisierteEinleitung}</p>
+        ${emailTemplate}
+    `;
 
     document.getElementById('email-content-output').innerHTML = fullEmailBody;
-    document.getElementById('mail-generator-section').style.display = 'none';
     document.getElementById('email-content-section').style.display = 'block';
 }
 
 function getSelectedAnrede() {
-    const selected = document.querySelector('input[name="anrede-option"]:checked');
-    if (!selected) return `Sehr geehrte Damen und Herren`;
-
-    const anredeValue = selected.value;
-    const inhaber = currentAnalysis.inhaber || '';
-    const firma = currentAnalysis.firmenname || 'dem Team';
-
-    switch (anredeValue) {
-        case 'person': return `Sehr geehrte/r Herr/Frau ${inhaber}`;
-        case 'firma': return `Sehr geehrte Damen und Herren der Firma ${firma}`;
-        case 'allgemein': return `Sehr geehrte Damen und Herren`;
-        default: return `Sehr geehrte Damen und Herren`;
+    const selected = document.querySelector('input[name="anrede-option"]:checked')?.value;
+    if (selected === 'person' && currentAnalysis.inhaber) {
+        return `Sehr geehrte/r Herr/Frau ${currentAnalysis.inhaber}`;
     }
+    if (selected === 'firma' && currentAnalysis.firmenname) {
+        return `Sehr geehrte Damen und Herren der Firma ${currentAnalysis.firmenname}`;
+    }
+    return `Sehr geehrte Damen und Herren`;
 }
 
 function showPreview() {
