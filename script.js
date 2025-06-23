@@ -73,8 +73,7 @@ async function analyseGlasereiDaten() {
   const impressumText = document.getElementById('impressumText').value.trim();
   const kundeninfoText = document.getElementById('kundeninfoText').value.trim();
   const output = document.getElementById('output');
-  const mailSection = document.getElementById('mail-generator-section');
-
+  
   if (!apiKey) {
     output.innerHTML = '<p style="color: red;">Bitte geben Sie Ihren OpenAI API Key ein.</p>';
     return;
@@ -112,16 +111,8 @@ ${kundeninfoText ? `KUNDENINFORMATIONEN:\n${kundeninfoText}\n\n` : ''}
 Extrahiere folgende Informationen im JSON-Format:
 {
   "firmenname": "Name der Firma",
-  "anschrift": {
-    "strasse": "Straße und Hausnummer",
-    "plz": "Postleitzahl",
-    "ort": "Ort"
-  },
-  "kontakt": {
-    "telefon": "Telefonnummer",
-    "email": "E-Mail-Adresse",
-    "website": "Website (falls vorhanden)"
-  },
+  "anschrift": { "strasse": "Straße und Hausnummer", "plz": "Postleitzahl", "ort": "Ort" },
+  "kontakt": { "telefon": "Telefonnummer", "email": "E-Mail-Adresse", "website": "Website (falls vorhanden)" },
   "inhaber": "Name des Inhabers/Geschäftsführers",
   "gruendungsjahr": "Gründungsjahr (falls angegeben)",
   "leistungen": ["Liste der angebotenen Leistungen"],
@@ -136,14 +127,9 @@ Antworte nur mit dem JSON-Objekt, ohne zusätzlichen Text.`
       })
     });
 
-    if (!analysisResponse.ok) {
-      throw new Error(`HTTP error! status: ${analysisResponse.status}`);
-    }
-
+    if (!analysisResponse.ok) throw new Error(`HTTP error! status: ${analysisResponse.status}`);
     const analysisData = await analysisResponse.json();
     const parsedResponse = JSON.parse(analysisData.choices[0].message.content);
-    
-    // Füge den ursprünglichen Text hinzu
     parsedResponse.ueberUnsText = kundeninfoText || impressumText;
     
     // Zweite API-Anfrage für Einleitungsvarianten
@@ -165,33 +151,20 @@ WICHTIGE DATEN DER GLASEREI:
 - Inhaber: ${parsedResponse.inhaber || 'unbekannt'}
 - Standort: ${parsedResponse.anschrift?.ort || 'unbekannt'}
 
-Lies dir den folgenden Text der Glaserei aufmerksam durch.
-
-Schreibe **drei kurze, professionelle Einleitungsabschnitte** für eine E-Mail an diese Glaserei. Du willst ihnen deinen Konfigurator vorstellen.
+Lies dir den folgenden Text der Glaserei aufmerksam durch. Schreibe **drei kurze, professionelle Einleitungsabschnitte** für eine E-Mail an diese Glaserei.
 
 WICHTIG: 
-- Du bist der Anbieter, die Glaserei ist der potenzielle Kunde
-- BEGINNE NICHT mit einer Anrede - die wird separat hinzugefügt
-- Verwende den KORREKTEN Firmennamen und Inhaber-Namen
-- Schreibe KURZ und PRÄGNANT (max. 3-4 Sätze pro Variante)
-- KEINE redundanten Namenswiederholungen
-- Professioneller, direkter Ton
-- Fokus auf das Problem (Zeitaufwand bei kleinen Anfragen) und die Lösung
-- JEDE Variante muss einen ÜBERGANG zu deiner Lösung enthalten
-- Ende jede Variante mit einem Satz, der zu deiner Lösung überleitet
+- BEGINNE NICHT mit einer Anrede.
+- Verwende den KORREKTEN Firmennamen und Inhaber-Namen.
+- Schreibe KURZ und PRÄGNANT (max. 3-4 Sätze pro Variante).
+- JEDE Variante muss einen ÜBERGANG zu deiner Lösung enthalten.
 
 VARIANTE 1: Spezifische Merkmale aufgreifen
 VARIANTE 2: Regionale/örtliche Verbindung  
 VARIANTE 3: Leistungsfokus
 
-Beispiel für professionelle Einleitungen MIT ÜBERGANG:
-- "Als erfahrener Glasermeister wissen Sie, dass kleine Anfragen oft viel Zeit kosten. Mit Ihrem Wachstum steigen auch die Herausforderungen bei der Anfragenbearbeitung. Als jemand, der sich auf digitale Lösungen spezialisiert hat, habe ich ein Tool entwickelt, das genau dieses Problem löst."
-- "In Ihrer Region sind Sie bekannt für Qualität und Service. Doch auch bei Ihnen können kleine Anfragen den Arbeitsalltag verlangsamen. Genau deshalb habe ich einen Konfigurator entwickelt, der Ihnen dabei helfen kann."
-- "Mit zunehmender Kundenzahl wird die effiziente Bearbeitung von Anfragen zur Herausforderung. Besonders bei kleineren Aufträgen geht oft wertvolle Zeit verloren. Als Entwickler digitaler Werkzeuge habe ich eine Lösung erstellt, die diesen Prozess optimiert."
-
 TEXT DER GLASEREI:
 ${impressumText}
-
 ${kundeninfoText}
 
 Antworte NUR mit den 3 Einleitungsvarianten, ohne weitere Erklärungen.`
@@ -201,32 +174,18 @@ Antworte NUR mit den 3 Einleitungsvarianten, ohne weitere Erklärungen.`
       })
     });
 
-    if (!einleitungResponse.ok) {
-      throw new Error(`HTTP error! status: ${einleitungResponse.status}`);
-    }
-
+    if (!einleitungResponse.ok) throw new Error(`HTTP error! status: ${einleitungResponse.status}`);
     const einleitungData = await einleitungResponse.json();
     const einleitungsText = einleitungData.choices[0].message.content.trim();
     
-    // Parse die 3 Varianten
     const varianten = parseEinleitungsVarianten(einleitungsText);
-    
-    // Füge die 3 Varianten zu den Daten hinzu
     parsedResponse.einleitungsVarianten = varianten;
-    parsedResponse.personalisierteEinleitung = varianten.variante1; // Standard: erste Variante
-    
-    // E-Mail-Text im Ausgabebereich anzeigen
-    document.getElementById('mail-output').innerText = varianten.variante1;
+    parsedResponse.personalisierteEinleitung = varianten.variante1; 
     
     currentAnalysis = parsedResponse;
     
-    // Anzeige der analysierten Daten
     displayAnalysis(parsedResponse);
-    
-    // E-Mail-Generator anzeigen
     showMailGenerator();
-    
-    // Zur Historie hinzufügen
     addToHistory(parsedResponse);
 
   } catch (error) {
@@ -235,80 +194,23 @@ Antworte NUR mit den 3 Einleitungsvarianten, ohne weitere Erklärungen.`
   }
 }
 
-// Funktion zum Parsen der Einleitungsvarianten
 function parseEinleitungsVarianten(einleitungsText) {
-  const varianten = {
-    variante1: '',
-    variante2: '',
-    variante3: ''
-  };
-  
-  // Teile den Text in Abschnitte auf
+  const varianten = { variante1: '', variante2: '', variante3: '' };
   const sections = einleitungsText.split(/(?:VARIANTE \d+:)/);
-  
   if (sections.length >= 4) {
-    // Entferne leere Einträge und trimme
-    const cleanSections = sections.filter(section => section.trim()).map(section => section.trim());
-    
-    if (cleanSections.length >= 3) {
-      varianten.variante1 = cleanSections[0];
-      varianten.variante2 = cleanSections[1];
-      varianten.variante3 = cleanSections[2];
-    }
+    varianten.variante1 = sections[1].trim();
+    varianten.variante2 = sections[2].trim();
+    varianten.variante3 = sections[3].trim();
   } else {
-    // Fallback: Versuche es mit Zeilen-basiertem Parsing
-    const lines = einleitungsText.split('\n');
-    let currentVariante = '';
-    let currentText = '';
-    
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      
-      if (trimmedLine.startsWith('VARIANTE 1:') || trimmedLine.includes('VARIANTE 1')) {
-        if (currentVariante && currentText) {
-          varianten[currentVariante] = currentText.trim();
-        }
-        currentVariante = 'variante1';
-        currentText = trimmedLine.replace(/VARIANTE 1:?\s*/, '').trim();
-      } else if (trimmedLine.startsWith('VARIANTE 2:') || trimmedLine.includes('VARIANTE 2')) {
-        if (currentVariante && currentText) {
-          varianten[currentVariante] = currentText.trim();
-        }
-        currentVariante = 'variante2';
-        currentText = trimmedLine.replace(/VARIANTE 2:?\s*/, '').trim();
-      } else if (trimmedLine.startsWith('VARIANTE 3:') || trimmedLine.includes('VARIANTE 3')) {
-        if (currentVariante && currentText) {
-          varianten[currentVariante] = currentText.trim();
-        }
-        currentVariante = 'variante3';
-        currentText = trimmedLine.replace(/VARIANTE 3:?\s*/, '').trim();
-      } else if (currentVariante && trimmedLine) {
-        currentText += ' ' + trimmedLine;
-      }
-    }
-    
-    // Letzte Variante speichern
-    if (currentVariante && currentText) {
-      varianten[currentVariante] = currentText.trim();
-    }
+    varianten.variante1 = einleitungsText; // Fallback
   }
-  
-  // Fallback: Wenn keine Varianten gefunden wurden, erstelle Standard-Varianten
-  if (!varianten.variante1 && !varianten.variante2 && !varianten.variante3) {
-    varianten.variante1 = `Als erfahrener Glasermeister wissen Sie, dass kleine Anfragen oft viel Zeit kosten. Mit Ihrem Wachstum steigen auch die Herausforderungen bei der Anfragenbearbeitung. Als jemand, der sich auf digitale Lösungen spezialisiert hat, habe ich ein Tool entwickelt, das genau dieses Problem löst.`;
-    varianten.variante2 = `In Ihrer Region sind Sie bekannt für Qualität und Service. Doch auch bei Ihnen können kleine Anfragen den Arbeitsalltag verlangsamen. Genau deshalb habe ich einen Konfigurator entwickelt, der Ihnen dabei helfen kann.`;
-    varianten.variante3 = `Mit zunehmender Kundenzahl wird die effiziente Bearbeitung von Anfragen zur Herausforderung. Besonders bei kleineren Aufträgen geht oft wertvolle Zeit verloren. Als Entwickler digitaler Werkzeuge habe ich eine Lösung erstellt, die diesen Prozess optimiert.`;
-  }
-  
   return varianten;
 }
 
-// Anzeige der analysierten Daten
 function displayAnalysis(data) {
     const output = document.getElementById('output');
-    output.innerHTML = ''; // Leere vorherige Ausgabe
+    output.innerHTML = '';
 
-    // Hilfsfunktion zur Erstellung von Zeilen
     const createRow = (label, value) => {
         if (!value || value.length === 0) return '';
         let displayValue = value;
@@ -317,10 +219,7 @@ function displayAnalysis(data) {
         } else if (typeof value === 'object' && value !== null) {
             displayValue = `<ul>${Object.entries(value).map(([key, val]) => `<li><strong>${key}:</strong> ${val}</li>`).join('')}</ul>`;
         }
-        return `<tr>
-                    <td><strong>${label}</strong></td>
-                    <td>${displayValue}</td>
-                </tr>`;
+        return `<tr><td><strong>${label}</strong></td><td>${displayValue}</td></tr>`;
     };
 
     let tableContent = '<table class="analysis-table">';
@@ -334,399 +233,189 @@ function displayAnalysis(data) {
     tableContent += createRow('Besonderheiten', data.besonderheiten);
     tableContent += '</table>';
 
-    // "Über uns"-Text anzeigen
     if (data.ueberUnsText) {
-        tableContent += `
-            <h4>Originaltext ("Über uns" / Impressum)</h4>
-            <div class="original-text-box">${data.ueberUnsText}</div>
-        `;
+        tableContent += `<h4>Originaltext ("Über uns" / Impressum)</h4><div class="original-text-box">${data.ueberUnsText}</div>`;
     }
 
     output.innerHTML = tableContent;
     document.getElementById('analysis-output-section').style.display = 'block';
 }
 
-// E-Mail-Generierung
-async function generateMailWithSelectedEinleitung() {
-  const selectedEinleitungRadio = document.querySelector('input[name="einleitung"]:checked');
-  
-  if (!selectedEinleitungRadio) {
-    alert('Bitte wählen Sie eine Einleitungsvariante aus.');
-    return;
-  }
-
-  if (!currentAnalysis) {
-    alert('Bitte führen Sie zuerst eine Analyse durch.');
-    return;
-  }
-
-  const selectedVariante = selectedEinleitungRadio.value;
-  const einleitungText = currentAnalysis.einleitungsVarianten[selectedVariante];
-  
-  // Aktualisiere die ausgewählte Einleitung
-  currentAnalysis.personalisierteEinleitung = einleitungText;
-  
-  // E-Mail generieren
-  const mailOutput = document.getElementById('mail-output');
-  mailOutput.innerHTML = '<p>🔄 Generiere E-Mail...</p>';
-
-  // Anrede von den Radio-Buttons holen
-  const anrede = getSelectedAnrede();
-  
-  const selectedVarianteKey = selectedEinleitungRadio.value;
-  const roheEinleitung = currentAnalysis.einleitungsVarianten[selectedVarianteKey];
-
-  // Die Einleitung enthält jetzt keine Anrede mehr, daher keine Bereinigung nötig
-  const einleitungTextFinal = roheEinleitung.trim();
-  
-  // Ersten Buchstaben der Einleitung klein machen
-  const einleitungTextKlein = einleitungTextFinal.charAt(0).toLowerCase() + einleitungTextFinal.slice(1);
-    
-  console.log('🔍 Debug - Einleitung:', einleitungTextKlein);
-
-  const email = currentAnalysis.kontakt?.email || 'beispiel@email.de';
-  const subject = `Anfrage zur Optimierung Ihrer Kundenanfragen – Konfigurator für ${currentAnalysis.firmenname}`;
-  
-  const personalisierteEinleitung = currentAnalysis.personalisierteEinleitung;
-
-  // Anrede holen
-  const anrede = getSelectedAnrede();
-
-  const fullEmailBody = `
-    <style>
-      body {
-        line-height: 1.4;
-        font-family: Arial, sans-serif;
-        font-size: 15px;
-      }
-      p {
-        margin: 0 0 10px 0;
-      }
-      ul {
-        margin: 10px 0;
-        padding-left: 20px;
-      }
-      li {
-        margin-bottom: 5px;
-      }
-    </style>
-    <p>${anrede},</p>
-    <p>${personalisierteEinleitung}</p>
-    ${emailTemplate}
-  `;
-
-  document.getElementById('email-content-output').innerHTML = fullEmailBody;
-
-  // Buttons für die weitere Verarbeitung anzeigen
-  document.getElementById('previewMailBtn').style.display = 'inline-block';
-  document.getElementById('copyMailBtn').style.display = 'inline-block';
-  document.getElementById('sendMailBtn').style.display = 'inline-block';
-  document.getElementById('configTestBtn').style.display = 'inline-block';
-  
-  // E-Mail-Daten für Vorschau speichern
-  window.previewEmailData = {
-    to: email,
-    subject: subject,
-    content: fullEmailBody
-  };
-
-  alert(`✅ Einleitung "${selectedVariante}" übernommen und E-Mail generiert!`);
-  
-  // E-Mail-Status in der Historie aktualisieren
-  if (analysisHistory.length > 0) {
-    // Den neuesten Eintrag (ersten in der Liste) als generiert markieren
-    analysisHistory[0].emailGenerated = true;
-    // In localStorage speichern
-    saveHistoryToStorage();
-    updateHistoryDisplay();
-  }
-}
-
-// Funktion zum Abrufen der ausgewählten Anrede
-function getSelectedAnrede() {
-  const selected = document.querySelector('input[name="anrede-option"]:checked');
-  if (!selected) return `Sehr geehrte Damen und Herren`;
-
-  const anredeValue = selected.value;
-  const inhaber = currentAnalysis.inhaber || '';
-  const firma = currentAnalysis.firmenname || 'dem Team';
-
-  switch (anredeValue) {
-    case 'person':
-      return `Sehr geehrte/r Herr/Frau ${inhaber}`;
-    case 'firma':
-      return `Sehr geehrte Damen und Herren der Firma ${firma}`;
-    case 'allgemein':
-      return `Sehr geehrte Damen und Herren`;
-    default:
-      return `Sehr geehrte Damen und Herren`;
-  }
-}
-
-// E-Mail-Generator anzeigen
 function showMailGenerator() {
-  document.getElementById('impressum-input-section').style.display = 'none';
-  document.getElementById('analysis-output-section').style.display = 'none';
-  document.getElementById('history-section').style.display = 'none';
-  document.getElementById('mail-generator-section').style.display = 'block';
-  document.getElementById('email-content-section').style.display = 'none'; // Verstecke den finalen Mail-Inhalt erstmal
+    document.getElementById('impressum-input-section').style.display = 'none';
+    document.getElementById('analysis-output-section').style.display = 'none';
+    document.getElementById('history-section').style.display = 'none';
+    document.getElementById('mail-generator-section').style.display = 'block';
+    document.getElementById('email-content-section').style.display = 'none';
 
-  // UI-Elemente für die Mail-Generierung füllen
-  const data = currentAnalysis;
-  if (!data) return;
+    const data = currentAnalysis;
+    if (!data) return;
 
-  // Einleitungsvarianten anzeigen
-  const variantenContainer = document.getElementById('einleitung-varianten');
-  variantenContainer.innerHTML = '';
-  for (const key in data.einleitungsVarianten) {
-    if (data.einleitungsVarianten.hasOwnProperty(key)) {
-      const variante = data.einleitungsVarianten[key];
-      const radioId = `variante-${key}`;
-      variantenContainer.innerHTML += `
-        <div class="einleitung-variante">
-          <input type="radio" id="${radioId}" name="einleitung-variante" value="${key}" ${key === 'variante1' ? 'checked' : ''}>
-          <label for="${radioId}">${variante}</label>
-        </div>
-      `;
+    const variantenContainer = document.getElementById('einleitung-varianten');
+    variantenContainer.innerHTML = '';
+    for (const key in data.einleitungsVarianten) {
+        if (data.einleitungsVarianten.hasOwnProperty(key)) {
+            const variante = data.einleitungsVarianten[key];
+            const radioId = `variante-${key}`;
+            variantenContainer.innerHTML += `<div class="einleitung-variante"><input type="radio" id="${radioId}" name="einleitung-variante" value="${key}" ${key === 'variante1' ? 'checked' : ''}><label for="${radioId}">${variante}</label></div>`;
+        }
     }
-  }
-  
-  // Event Listener für die Radio-Buttons hinzufügen
-  document.querySelectorAll('input[name="einleitung-variante"]').forEach(radio => {
-    radio.addEventListener('change', () => {
-      // Die persönliche Einleitung bei Auswahl aktualisieren
-      currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten[radio.value];
+    
+    document.querySelectorAll('input[name="einleitung-variante"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten[radio.value];
+        });
     });
-  });
 
-  // Anrede-Optionen anzeigen
-  const anredeContainer = document.getElementById('anrede-optionen');
-  anredeContainer.innerHTML = `
-    <div class="anrede-option">
-      <input type="radio" id="anrede-person" name="anrede-option" value="person" checked>
-      <label for="anrede-person">Person: Sehr geehrte/r Herr/Frau ${data.inhaber || '...'}</label>
-    </div>
-    <div class="anrede-option">
-      <input type="radio" id="anrede-firma" name="anrede-option" value="firma">
-      <label for="anrede-firma">Firma: Sehr geehrte Damen und Herren der Firma ${data.firmenname || '...'}</label>
-    </div>
-    <div class="anrede-option">
-      <input type="radio" id="anrede-allgemein" name="anrede-option" value="allgemein">
-      <label for="anrede-allgemein">Allgemein: Sehr geehrte Damen und Herren</label>
-    </div>
-  `;
-
-  document.getElementById('generate-mail-button').style.display = 'inline-block';
-}
-
-// E-Mail-Vorschau anzeigen
-function showPreview(inModal = true) {
-  if (!currentAnalysis) return;
-
-  // Sicherstellen, dass die aktuellste Einleitung verwendet wird
-  const selectedEinleitungKey = document.querySelector('input[name="einleitung-variante"]:checked')?.value;
-  if (!selectedEinleitungKey) {
-    alert("Bitte wählen Sie zuerst eine Einleitungsvariante.");
-    return;
-  }
-  const personalisierteEinleitung = currentAnalysis.einleitungsVarianten[selectedEinleitungKey];
-  const anrede = getSelectedAnrede();
-
-  const fullEmailBody = `
-    <p>${anrede},</p>
-    <p>${personalisierteEinleitung}</p>
-    ${emailTemplate}
-  `;
-
-  if (inModal) {
-    const modalBody = document.getElementById('preview-modal-body');
-    modalBody.innerHTML = fullEmailBody;
-    document.getElementById('preview-modal').style.display = 'block';
-  } else {
-    // Direkt im Hauptfenster aktualisieren (z.B. nach Anreden-Änderung)
-    document.getElementById('email-content-output').innerHTML = fullEmailBody;
-  }
-}
-
-// Vorschau-Modal schließen
-function closePreviewModal() {
-  document.getElementById('preview-modal').style.display = 'none';
-}
-
-// E-Mail in Zwischenablage kopieren
-function copyToClipboard() {
-  const emailContent = document.getElementById('email-content-output').innerText;
-  navigator.clipboard.writeText(emailContent).then(() => {
-    alert('E-Mail-Text in die Zwischenablage kopiert!');
-  }, (err) => {
-    console.error('Fehler beim Kopieren: ', err);
-    alert('Fehler beim Kopieren.');
-  });
-}
-
-// E-Mail senden (EmailJS)
-async function sendEmail() {
-  const serviceID = document.getElementById('emailjsServiceID').value;
-  const templateID = document.getElementById('emailjsTemplateID').value;
-  const userID = document.getElementById('emailjsUserID').value;
-
-  if (!serviceID || !templateID || !userID) {
-    alert('Bitte füllen Sie alle EmailJS Konfigurationsfelder aus.');
-    return;
-  }
-
-  if (!currentAnalysis || !currentAnalysis.kontakt.email) {
-    alert('Keine E-Mail-Adresse für den Versand gefunden.');
-    return;
-  }
-
-  const anrede = getSelectedAnrede();
-  const subject = `Anfrage Konfigurator für ${currentAnalysis.firmenname || 'Ihren Betrieb'}`;
-  const einleitung = currentAnalysis.personalisierteEinleitung;
-
-  const fullEmailBody = `
-    <p>${anrede},</p>
-    <p>${einleitung}</p>
-    ${emailTemplate}
-  `;
-  
-  const templateParams = {
-    to_name: anrede,
-    to_email: currentAnalysis.kontakt.email,
-    from_name: "Atakan Olcaysu",
-    subject: subject,
-    email_body: fullEmailBody,
-    firmenname: currentAnalysis.firmenname,
-    inhaber: currentAnalysis.inhaber
-  };
-
-  try {
-    await emailjs.send(serviceID, templateID, templateParams, userID);
-    alert('E-Mail erfolgreich gesendet!');
-    // Markiere als gesendet in der Historie
-    currentAnalysis.emailGesendet = true;
-    updateHistoryDisplay();
-    saveHistoryToStorage();
-  } catch (error) {
-    console.error('Fehler beim Senden der E-Mail:', error);
-    alert(`Fehler beim Senden der E-Mail: ${JSON.stringify(error)}`);
-  }
-}
-
-// Von Vorschau senden
-function sendFromPreview() {
-  sendEmail();
-  closePreviewModal();
-}
-
-// EmailJS-Konfiguration testen
-function testEmailJSConfig() {
-  // Diese Funktion kann beibehalten werden, um die Konfiguration zu testen
-  alert("Test-Funktion für EmailJS.");
-}
-
-// Zur Historie hinzufügen
-function addToHistory(data) {
-  // Eindeutige ID für den Eintrag erstellen
-  data.id = `analyse-${Date.now()}`;
-  data.timestamp = new Date().toLocaleString('de-DE');
-  analysisHistory.unshift(data); // Oben einfügen
-  updateHistoryDisplay();
-  saveHistoryToStorage();
-}
-
-// Historie-Anzeige aktualisieren
-function updateHistoryDisplay() {
-  const historyList = document.getElementById('history-list');
-  historyList.innerHTML = '';
-  analysisHistory.forEach(item => {
-    const listItem = document.createElement('li');
-    listItem.innerHTML = `
-      <strong>${item.firmenname || 'Unbekannte Firma'}</strong> (${item.timestamp})
-      <span class="status">${item.emailGesendet ? '✓ Gesendet' : ''}</span>
+    const anredeContainer = document.getElementById('anrede-optionen');
+    anredeContainer.innerHTML = `
+        <div class="anrede-option"><input type="radio" id="anrede-person" name="anrede-option" value="person" checked><label for="anrede-person">Person: Sehr geehrte/r Herr/Frau ${data.inhaber || '...'}</label></div>
+        <div class="anrede-option"><input type="radio" id="anrede-firma" name="anrede-option" value="firma"><label for="anrede-firma">Firma: Sehr geehrte Damen und Herren der Firma ${data.firmenname || '...'}</label></div>
+        <div class="anrede-option"><input type="radio" id="anrede-allgemein" name="anrede-option" value="allgemein"><label for="anrede-allgemein">Allgemein: Sehr geehrte Damen und Herren</label></div>
     `;
-    listItem.onclick = () => loadFromHistory(item.id);
-    historyList.appendChild(listItem);
-  });
+
+    document.getElementById('generate-mail-button').style.display = 'inline-block';
 }
-
-function loadFromHistory(id) {
-  const item = analysisHistory.find(entry => entry.id === id);
-  if (item) {
-    currentAnalysis = item;
-    displayAnalysis(item);
-    showMailGenerator(); // Direkt zum Mail-Generator gehen
-  }
-}
-
-function clearHistory() {
-  if (confirm('Möchten Sie wirklich die gesamte Historie löschen?')) {
-    analysisHistory = [];
-    localStorage.removeItem('glasereiAnalysisHistory');
-    updateHistoryDisplay();
-  }
-}
-
-// Event Listeners und Initialisierung
-document.addEventListener('DOMContentLoaded', () => {
-  // Lade Konfiguration aus localStorage
-  document.getElementById('openaiApiKey').value = localStorage.getItem('openaiApiKey') || '';
-  document.getElementById('emailjsServiceID').value = localStorage.getItem('emailjsServiceID') || '';
-  document.getElementById('emailjsTemplateID').value = localStorage.getItem('emailjsTemplateID') || '';
-  document.getElementById('emailjsUserID').value = localStorage.getItem('emailjsUserID') || '';
-
-  // Speichere Konfiguration bei Änderung
-  document.getElementById('openaiApiKey').addEventListener('input', (e) => localStorage.setItem('openaiApiKey', e.target.value));
-  document.getElementById('emailjsServiceID').addEventListener('input', (e) => localStorage.setItem('emailjsServiceID', e.target.value));
-  document.getElementById('emailjsTemplateID').addEventListener('input', (e) => localStorage.setItem('emailjsTemplateID', e.target.value));
-  document.getElementById('emailjsUserID').addEventListener('input', (e) => localStorage.setItem('emailjsUserID', e.target.value));
-
-  // Lade Historie
-  loadHistoryFromStorage();
-  updateHistoryDisplay();
-});
-
-// Die folgenden Funktionen sind veraltet oder wurden ersetzt und sollten entfernt werden, 
-// falls sie noch irgendwo im Code existieren.
-// Die Logik ist jetzt in generateAndShowEmailContent und showMailGenerator integriert.
-
-function changeAnrede() {
-  // Diese Funktion ist veraltet, da die Anrede jetzt dynamisch in der Vorschau und Mail gerendert wird.
-  alert("Die Anrede kann jetzt direkt über die Radio-Buttons geändert werden.");
-}
-
-// Initialer Ladevorgang
-loadHistoryFromStorage();
-updateHistoryDisplay();
 
 function generateAndShowEmailContent() {
-    if (!currentAnalysis) {
-        console.error('Keine Analyse zum Generieren der Mail vorhanden.');
+    if (!currentAnalysis) return;
+
+    const selectedEinleitungKey = document.querySelector('input[name="einleitung-variante"]:checked')?.value;
+    currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten[selectedEinleitungKey || 'variante1'];
+    
+    const anrede = getSelectedAnrede();
+    const personalisierteEinleitung = currentAnalysis.personalisierteEinleitung;
+
+    const fullEmailBody = `<p>${anrede},</p><p>${personalisierteEinleitung}</p>${emailTemplate}`;
+
+    document.getElementById('email-content-output').innerHTML = fullEmailBody;
+    document.getElementById('mail-generator-section').style.display = 'none';
+    document.getElementById('email-content-section').style.display = 'block';
+}
+
+function getSelectedAnrede() {
+    const selected = document.querySelector('input[name="anrede-option"]:checked');
+    if (!selected) return `Sehr geehrte Damen und Herren`;
+
+    const anredeValue = selected.value;
+    const inhaber = currentAnalysis.inhaber || '';
+    const firma = currentAnalysis.firmenname || 'dem Team';
+
+    switch (anredeValue) {
+        case 'person': return `Sehr geehrte/r Herr/Frau ${inhaber}`;
+        case 'firma': return `Sehr geehrte Damen und Herren der Firma ${firma}`;
+        case 'allgemein': return `Sehr geehrte Damen und Herren`;
+        default: return `Sehr geehrte Damen und Herren`;
+    }
+}
+
+function showPreview() {
+    if (!currentAnalysis) return;
+    
+    const anrede = getSelectedAnrede();
+    const personalisierteEinleitung = currentAnalysis.personalisierteEinleitung;
+    const fullEmailBody = `<p>${anrede},</p><p>${personalisierteEinleitung}</p>${emailTemplate}`;
+    
+    document.getElementById('preview-modal-body').innerHTML = fullEmailBody;
+    document.getElementById('preview-modal').style.display = 'block';
+}
+
+function closePreviewModal() {
+    document.getElementById('preview-modal').style.display = 'none';
+}
+
+function copyToClipboard() {
+    const emailContent = document.getElementById('email-content-output').innerText;
+    navigator.clipboard.writeText(emailContent).then(() => alert('E-Mail-Text in die Zwischenablage kopiert!'));
+}
+
+async function sendEmail() {
+    const serviceID = document.getElementById('emailjsServiceID').value;
+    const templateID = document.getElementById('emailjsTemplateID').value;
+    const userID = document.getElementById('emailjsUserID').value;
+
+    if (!serviceID || !templateID || !userID) {
+        alert('Bitte füllen Sie alle EmailJS Konfigurationsfelder aus.');
+        return;
+    }
+    if (!currentAnalysis || !currentAnalysis.kontakt.email) {
+        alert('Keine E-Mail-Adresse für den Versand gefunden.');
         return;
     }
 
-    // Sicherstellen, dass die aktuellste Einleitung verwendet wird
-    const selectedEinleitungKey = document.querySelector('input[name="einleitung-variante"]:checked')?.value;
-    if (!selectedEinleitungKey) {
-        // Fallback, falls nichts ausgewählt ist, obwohl das nicht passieren sollte
-        currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten.variante1;
-    } else {
-        currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten[selectedEinleitungKey];
-    }
-    const personalisierteEinleitung = currentAnalysis.personalisierteEinleitung;
-
-    // Anrede holen
     const anrede = getSelectedAnrede();
+    const einleitung = currentAnalysis.personalisierteEinleitung;
+    const fullEmailBody = `<p>${anrede},</p><p>${einleitung}</p>${emailTemplate}`;
+    
+    const templateParams = {
+        to_name: anrede,
+        to_email: currentAnalysis.kontakt.email,
+        from_name: "Atakan Olcaysu",
+        subject: `Anfrage Konfigurator für ${currentAnalysis.firmenname || 'Ihren Betrieb'}`,
+        email_body: fullEmailBody,
+        firmenname: currentAnalysis.firmenname,
+        inhaber: currentAnalysis.inhaber
+    };
 
-    const fullEmailBody = `
-        <p>${anrede},</p>
-        <p>${personalisierteEinleitung}</p>
-        ${emailTemplate}
-    `;
+    try {
+        await emailjs.send(serviceID, templateID, templateParams, userID);
+        alert('E-Mail erfolgreich gesendet!');
+        currentAnalysis.emailGesendet = true;
+        updateHistoryDisplay();
+        saveHistoryToStorage();
+    } catch (error) {
+        alert(`Fehler beim Senden der E-Mail: ${JSON.stringify(error)}`);
+    }
+}
 
-    document.getElementById('email-content-output').innerHTML = fullEmailBody;
+function sendFromPreview() {
+    sendEmail();
+    closePreviewModal();
+}
 
-    // UI aktualisieren
-    document.getElementById('mail-generator-section').style.display = 'none';
-    document.getElementById('email-content-section').style.display = 'block';
-} 
+function addToHistory(data) {
+    data.id = `analyse-${Date.now()}`;
+    data.timestamp = new Date().toLocaleString('de-DE');
+    analysisHistory.unshift(data);
+    updateHistoryDisplay();
+    saveHistoryToStorage();
+}
+
+function updateHistoryDisplay() {
+    const historyList = document.getElementById('history-list');
+    historyList.innerHTML = '';
+    analysisHistory.forEach(item => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `<strong>${item.firmenname || 'Unbekannte Firma'}</strong> (${item.timestamp}) <span class="status">${item.emailGesendet ? '✓ Gesendet' : ''}</span>`;
+        listItem.onclick = () => loadFromHistory(item.id);
+        historyList.appendChild(listItem);
+    });
+}
+
+function loadFromHistory(id) {
+    const item = analysisHistory.find(entry => entry.id === id);
+    if (item) {
+        currentAnalysis = item;
+        displayAnalysis(item);
+        showMailGenerator();
+    }
+}
+
+function clearHistory() {
+    if (confirm('Möchten Sie wirklich die gesamte Historie löschen?')) {
+        analysisHistory = [];
+        localStorage.removeItem('glasereiAnalysisHistory');
+        updateHistoryDisplay();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    ['openaiApiKey', 'emailjsServiceID', 'emailjsTemplateID', 'emailjsUserID'].forEach(id => {
+        const element = document.getElementById(id);
+        element.value = localStorage.getItem(id) || '';
+        element.addEventListener('input', (e) => localStorage.setItem(id, e.target.value));
+    });
+
+    loadHistoryFromStorage();
+    updateHistoryDisplay();
+}); 
