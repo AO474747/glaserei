@@ -134,6 +134,91 @@
       border-radius: 4px;
       font-family: monospace;
     }
+
+    .emailjs-config-section {
+      background-color: #e7f3ff;
+      border: 1px solid #b3d9ff;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .analysis-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .analysis-table td {
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .analysis-table td:first-child {
+      font-weight: bold;
+      background-color: #f8f9fa;
+    }
+
+    .original-text-box {
+      background-color: #f8f9fa;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      border: 1px solid #dee2e6;
+    }
+
+    .einleitung-variante {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+    }
+
+    .anrede-option {
+      margin-bottom: 0.5rem;
+    }
+
+    .history-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .history-list li {
+      padding: 0.5rem;
+      border-bottom: 1px solid #dee2e6;
+      cursor: pointer;
+    }
+
+    .history-list li:hover {
+      background-color: #f8f9fa;
+    }
+
+    .status {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    #preview-modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 800px;
+      max-height: 80%;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
@@ -149,52 +234,96 @@
         Ihr API Key wird nur lokal gespeichert und nicht an uns übertragen.
       </p>
     </div>
-    
-    <div class="input-section">
-      <h3>Impressum</h3>
-      <textarea id="impressumText" rows="8" placeholder="Füge hier den Text aus dem Impressum ein..."></textarea>
-    </div>
-    
-    <div class="input-section">
-      <h3>Kundeninformationen / Über uns</h3>
-      <textarea id="kundeninfoText" rows="8" placeholder="Füge hier den Text aus 'Über uns' oder Kundeninformationen ein..."></textarea>
-    </div>
-    
-    <button onclick="analyseGlasereiDaten()">Daten analysieren</button>
-    <div id="output"></div>
 
-    <div id="mail-generator-section" style="display: none; margin-top: 20px;">
-      <button id="generateMailBtn" style="display: none;">✉️ Akquise-Mail generieren</button>
-      <button id="changeAnredeBtn" style="display: none; background-color: #ffc107; color: black;">👤 Anrede ändern</button>
-      <button id="previewMailBtn" style="display: none; background-color: #17a2b8;">👁️ E-Mail Vorschau</button>
-      <button id="copyMailBtn" style="display: none; background-color: #28a745;">📋 In Zwischenablage kopieren</button>
-      <button id="sendMailBtn" style="display: none; background-color: #dc3545;">📤 E-Mail senden</button>
-      
-      <button id="configTestBtn" style="display: none; background-color: #6f42c1; color: white;">🔧 EmailJS-Konfiguration testen</button>
-      
-      <div id="mail-output" style="margin-top: 15px; white-space: pre-wrap; background: #f1f1f1; padding: 1rem; border-radius: 6px; font-family: monospace;"></div>
-      
-      <!-- E-Mail Vorschau Modal -->
-      <div id="previewModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-        <div style="background-color: white; margin: 5% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; max-height: 80%; overflow-y: auto;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0;">📧 E-Mail Vorschau</h3>
-            <button onclick="closePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">✕ Schließen</button>
-          </div>
-          
-          <div style="border: 1px solid #ddd; padding: 20px; border-radius: 6px; background: #f9f9f9;">
-            <div style="margin-bottom: 15px;">
-              <strong>An:</strong> <span id="preview-to"></span><br>
-              <strong>Betreff:</strong> <span id="preview-subject"></span>
-            </div>
-            <div id="preview-content" style="font-family: Arial, sans-serif; line-height: 1.5; color: #222; background: white; padding: 20px; border-radius: 4px; border: 1px solid #eee;"></div>
-          </div>
-          
-          <div style="margin-top: 20px; text-align: center;">
-            <button onclick="sendFromPreview()" style="background-color: #dc3545; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-right: 10px;">📤 E-Mail senden</button>
-            <button onclick="closePreviewModal()" style="background-color: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px;">❌ Abbrechen</button>
-          </div>
+    <!-- EmailJS Configuration Section -->
+    <div class="emailjs-config-section">
+      <h3>📧 EmailJS Konfiguration</h3>
+      <p>Konfigurieren Sie EmailJS für den E-Mail-Versand:</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+          <label for="emailjsServiceID">Service ID:</label>
+          <input type="text" id="emailjsServiceID" class="api-key-input" placeholder="service_...">
         </div>
+        <div>
+          <label for="emailjsTemplateID">Template ID:</label>
+          <input type="text" id="emailjsTemplateID" class="api-key-input" placeholder="template_...">
+        </div>
+        <div>
+          <label for="emailjsUserID">User ID:</label>
+          <input type="text" id="emailjsUserID" class="api-key-input" placeholder="user_...">
+        </div>
+      </div>
+    </div>
+    
+    <!-- Input Section -->
+    <div id="impressum-input-section">
+      <div class="input-section">
+        <h3>Impressum</h3>
+        <textarea id="impressumText" rows="8" placeholder="Füge hier den Text aus dem Impressum ein..."></textarea>
+      </div>
+      
+      <div class="input-section">
+        <h3>Kundeninformationen / Über uns</h3>
+        <textarea id="kundeninfoText" rows="8" placeholder="Füge hier den Text aus 'Über uns' oder Kundeninformationen ein..."></textarea>
+      </div>
+      
+      <button onclick="analyseGlasereiDaten()">Daten analysieren</button>
+    </div>
+
+    <!-- Analysis Output Section -->
+    <div id="analysis-output-section" style="display: none;">
+      <h3>📊 Analysierte Daten</h3>
+      <div id="output"></div>
+    </div>
+
+    <!-- Mail Generator Section -->
+    <div id="mail-generator-section" style="display: none;">
+      <h3>✉️ E-Mail generieren</h3>
+      
+      <div>
+        <h4>Einleitungsvarianten auswählen:</h4>
+        <div id="einleitung-varianten"></div>
+      </div>
+
+      <div>
+        <h4>Anrede auswählen:</h4>
+        <div id="anrede-optionen"></div>
+      </div>
+
+      <button id="generate-mail-button" onclick="generateAndShowEmailContent()">✉️ Akquise-Mail generieren</button>
+    </div>
+
+    <!-- Email Content Section -->
+    <div id="email-content-section" style="display: none;">
+      <h3>📧 Generierte E-Mail</h3>
+      <div id="email-content-output"></div>
+      
+      <div style="margin-top: 1rem;">
+        <button onclick="showPreview()">👁️ Vorschau</button>
+        <button onclick="copyToClipboard()">📋 Kopieren</button>
+        <button onclick="sendEmail()">📤 Senden</button>
+      </div>
+    </div>
+
+    <!-- History Section -->
+    <div id="history-section" style="display: none;">
+      <h3>📋 Historie</h3>
+      <ul id="history-list"></ul>
+      <button onclick="clearHistory()">🗑️ Historie löschen</button>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
+  <div id="preview-modal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;">📧 E-Mail Vorschau</h3>
+        <button onclick="closePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">✕ Schließen</button>
+      </div>
+      <div id="preview-modal-body"></div>
+      <div style="margin-top: 20px; text-align: center;">
+        <button onclick="sendFromPreview()" style="background-color: #dc3545; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-right: 10px;">📤 E-Mail senden</button>
+        <button onclick="closePreviewModal()" style="background-color: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px;">❌ Abbrechen</button>
       </div>
     </div>
   </div>
@@ -206,14 +335,6 @@
       emailjs.init("ia3YBTzlRJq2D9Bgx");
     })();
   </script>
-  <script src="emailjs-config.js"></script>
   <script src="script.js"></script>
-  
-  <div class="container" style="margin-top: 2rem;">
-    <h2>Erfassungs-Verlauf</h2>
-    <div id="history-output">
-      <p>Bisher keine Einträge vorhanden.</p>
-    </div>
-  </div>
 </body>
 </html> 
