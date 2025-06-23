@@ -80,7 +80,7 @@ async function analyseGlasereiDaten() {
   }
 
   if (!impressumText && !ueberUnsText) {
-    output.innerHTML = '<p style="color: red;">Bitte geben Sie mindestens Impressum- oder „Über uns“-Text ein.</p>';
+    output.innerHTML = '<p style="color: red;">Bitte geben Sie mindestens Impressum- oder "Über uns"-Text ein.</p>';
     return;
   }
 
@@ -146,29 +146,23 @@ Antworte nur mit dem JSON-Objekt, ohne zusätzlichen Text.`
         messages: [
           {
             role: "user",
-            content: `Du bist ein Unternehmer, der einen Online-Konfigurator für Glas-Anfragen entwickelt hat. Du schreibst an eine Glaserei.
+            content: `Du bist ein Unternehmer, der einen Online-Konfigurator für Glas-Anfragen anbietet. Schreibe 3 kurze, professionelle Einleitungsabschnitte für eine E-Mail an eine Glaserei.
 
 WICHTIGE DATEN DER GLASEREI:
 - Firmenname: ${parsedResponse.firmenname || 'unbekannt'}
 - Inhaber: ${parsedResponse.inhaber || 'unbekannt'}
 - Standort: ${parsedResponse.anschrift?.ort || 'unbekannt'}
 
-Lies dir den folgenden Text der Glaserei aufmerksam durch. Schreibe **drei kurze, professionelle Einleitungsabschnitte** für eine E-Mail an diese Glaserei.
-
-WICHTIG: 
-- BEGINNE NICHT mit einer Anrede.
-- Verwende den KORREKTEN Firmennamen und Inhaber-Namen.
-- Schreibe KURZ und PRÄGNANT (max. 3-4 Sätze pro Variante).
-- JEDE Variante muss einen ÜBERGANG zu deiner Lösung enthalten.
-
-VARIANTE 1: Spezifische Merkmale aufgreifen
-VARIANTE 2: Regionale/örtliche Verbindung  
-VARIANTE 3: Leistungsfokus
-
 TEXT DER GLASEREI:
 ${combinedText}
 
-Antworte NUR mit den 3 Einleitungsvarianten, ohne weitere Erklärungen.`
+WICHTIG: 
+- Beginne NICHT mit einer Anrede.
+- Schreibe KURZ und PRÄGNANT (max. 2-3 Sätze pro Variante).
+- JEDE Variante muss einen ÜBERGANG zu deiner Lösung enthalten (Konfigurator für Glas-Anfragen).
+- Formuliere professionell, aber nicht zu steif.
+
+Antworte NUR mit den 3 Einleitungsvarianten (Variante 1, Variante 2, Variante 3), ohne weitere Erklärungen.`
           }
         ],
         temperature: 0.5
