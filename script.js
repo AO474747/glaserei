@@ -80,7 +80,7 @@ async function analyseGlasereiDaten() {
   }
 
   if (!impressumText && !ueberUnsText) {
-    output.innerHTML = '<p style="color: red;">Bitte geben Sie mindestens Impressum- oder „Über uns“-Text ein.</p>';
+    output.innerHTML = '<p style="color: red;">Bitte geben Sie mindestens Impressum- oder "Über uns"-Text ein.</p>';
     return;
   }
 
@@ -378,5 +378,8 @@ function clearHistory() {
 document.addEventListener('DOMContentLoaded', () => {
     loadHistoryFromStorage();
     updateHistoryDisplay();
-    document.getElementById('clear-history-button').addEventListener('click', clearHistory);
+    const clearButton = document.querySelector('.clear-history-btn');
+    if (clearButton) {
+      clearButton.addEventListener('click', clearHistory);
+    }
 });
