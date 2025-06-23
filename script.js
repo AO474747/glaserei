@@ -400,18 +400,9 @@ async function sendEmail() {
     `;
 
     const templateParams = {
-        // Der 'to_email' wird direkt im EmailJS Dashboard konfiguriert (Reply-To)
-        // oder kann hier übergeben werden, wenn die Vorlage es erwartet.
-        // In unserem Fall wird die Empfänger-Mail im Dashboard oder der API festgelegt.
-        
-        // Der Betreff wird im EmailJS Template definiert. Wir können ihn hier dynamisch übergeben.
-        betreff: `Ihr Online-Konfigurator für Glas-Anfragen | ${currentAnalysis.firmenname || 'Ihr Betrieb'}`,
-        
-        // Der wichtigste Teil: Der gesamte HTML-Inhalt wird an die 'message' Variable gesendet
-        message: emailBody,
-        
-        // Wir fügen auch die Ziel-E-Mail hinzu, falls sie im Template verwendet wird (z.B. für "Senden an")
-        to_email: currentAnalysis.kontakt.email
+        // Das Template erwartet NUR {{message}} - keine weiteren Variablen!
+        // Alle Inhalte müssen in der message-Variable zusammengefasst werden
+        message: emailBody
     };
 
     console.log('Template Parameters:', templateParams);
