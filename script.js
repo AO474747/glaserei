@@ -80,7 +80,7 @@ async function analyseGlasereiDaten() {
   }
 
   if (!impressumText && !ueberUnsText) {
-    output.innerHTML = '<p style="color: red;">Bitte geben Sie mindestens Impressum- oder "Über uns"-Text ein.</p>';
+    output.innerHTML = '<p style="color: red;">Bitte geben Sie mindestens Impressum- oder „Über uns“-Text ein.</p>';
     return;
   }
 
@@ -175,7 +175,7 @@ Antworte NUR mit den 3 Einleitungsvarianten (Variante 1, Variante 2, Variante 3)
     
     const varianten = parseEinleitungsVarianten(einleitungsText);
     parsedResponse.einleitungsVarianten = varianten;
-    parsedResponse.personalisierteEinleitung = varianten.variante1; 
+    parsedResponse.personalisierteEinleitung = varianten.length > 0 ? varianten[0] : ''; 
     
     currentAnalysis = parsedResponse;
     
@@ -189,16 +189,11 @@ Antworte NUR mit den 3 Einleitungsvarianten (Variante 1, Variante 2, Variante 3)
   }
 }
 
-function parseEinleitungsVarianten(einleitungsText) {
-  const varianten = { variante1: '', variante2: '', variante3: '' };
-  const sections = einleitungsText.split(/(?:VARIANTE \d+:)/);
-  if (sections.length >= 4) {
-    varianten.variante1 = sections[1].trim();
-    varianten.variante2 = sections[2].trim();
-    varianten.variante3 = sections[3].trim();
-  } else {
-    varianten.variante1 = einleitungsText; // Fallback
-  }
+function parseEinleitungsVarianten(text) {
+  if (!text) return [];
+  // Teilt den Text bei "Variante 1:", "Variante 2:", etc. (Groß-/Kleinschreibung wird ignoriert)
+  // und filtert leere Ergebnisse heraus.
+  const varianten = text.split(/Variante\s\d:/i).map(v => v.trim()).filter(Boolean);
   return varianten;
 }
 
@@ -236,10 +231,10 @@ function displayAnalysis(data) {
 
     // Einleitungsvarianten anzeigen
     const variantenContainer = document.getElementById('einleitung-varianten');
-    variantenContainer.innerHTML = Object.entries(data.einleitungsVarianten).map(([key, value], index) => `
+    variantenContainer.innerHTML = data.einleitungsVarianten.map((variante, index) => `
         <div class="einleitung-variante">
-            <input type="radio" id="${key}" name="einleitung-variante" value="${key}" ${index === 0 ? 'checked' : ''}>
-            <label for="${key}">${value}</label>
+            <input type="radio" id="variante-${index}" name="einleitung-variante" value="${index}" ${index === 0 ? 'checked' : ''} onchange="generateAndShowEmailContent()">
+            <label for="variante-${index}">${variante}</label>
         </div>
     `).join('');
 
@@ -249,44 +244,43 @@ function displayAnalysis(data) {
     if (data.inhaber) {
         anredeContainer.innerHTML += `
             <div class="anrede-option">
-                <input type="radio" id="anrede-person" name="anrede-option" value="person" checked>
+                <input type="radio" id="anrede-person" name="anrede-option" value="person" checked onchange="generateAndShowEmailContent()">
                 <label for="anrede-person">Person: Sehr geehrte/r Herr/Frau ${data.inhaber}</label>
             </div>`;
     }
     if (data.firmenname) {
         anredeContainer.innerHTML += `
             <div class="anrede-option">
-                <input type="radio" id="anrede-firma" name="anrede-option" value="firma" ${!data.inhaber ? 'checked' : ''}>
+                <input type="radio" id="anrede-firma" name="anrede-option" value="firma" ${!data.inhaber ? 'checked' : ''} onchange="generateAndShowEmailContent()">
                 <label for="anrede-firma">Firma: Sehr geehrte Damen und Herren der Firma ${data.firmenname}</label>
             </div>`;
     }
-    anredeContainer.innerHTML += `
+     anredeContainer.innerHTML += `
         <div class="anrede-option">
-            <input type="radio" id="anrede-allgemein" name="anrede-option" value="allgemein">
+            <input type="radio" id="anrede-allgemein" name="anrede-option" value="allgemein" ${!data.inhaber && !data.firmenname ? 'checked' : ''} onchange="generateAndShowEmailContent()">
             <label for="anrede-allgemein">Allgemein: Sehr geehrte Damen und Herren</label>
         </div>`;
-    
-    document.getElementById('analysis-output-section').style.display = 'block';
 }
 
 function showMailGenerator() {
-    document.getElementById('impressum-input-section').style.display = 'block'; 
     document.getElementById('mail-generator-section').style.display = 'block';
+    generateAndShowEmailContent();
 }
 
 function generateAndShowEmailContent() {
     if (!currentAnalysis) return;
 
-    // Personalisierte Einleitung aktualisieren
-    const selectedEinleitungKey = document.querySelector('input[name="einleitung-variante"]:checked').value;
-    currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten[selectedEinleitungKey];
-    
     const anrede = getSelectedAnrede();
-    const personalisierteEinleitung = currentAnalysis.personalisierteEinleitung;
+    
+    const selectedVarianteInput = document.querySelector('input[name="einleitung-variante"]:checked');
+    if (selectedVarianteInput) {
+        const selectedIndex = parseInt(selectedVarianteInput.value, 10);
+        currentAnalysis.personalisierteEinleitung = currentAnalysis.einleitungsVarianten[selectedIndex];
+    }
 
     const fullEmailBody = `
         <p>${anrede},</p>
-        <p>${personalisierteEinleitung}</p>
+        <p>${currentAnalysis.personalisierteEinleitung}</p>
         ${emailTemplate}
     `;
 
@@ -307,62 +301,28 @@ function getSelectedAnrede() {
 
 function showPreview() {
     if (!currentAnalysis) return;
-    
+    const previewContent = document.getElementById('email-preview-content');
     const anrede = getSelectedAnrede();
-    const personalisierteEinleitung = currentAnalysis.personalisierteEinleitung;
-    const fullEmailBody = `<p>${anrede},</p><p>${personalisierteEinleitung}</p>${emailTemplate}`;
-    
-    document.getElementById('preview-modal-body').innerHTML = fullEmailBody;
-    document.getElementById('preview-modal').style.display = 'block';
+    const einleitung = currentAnalysis.personalisierteEinleitung;
+    previewContent.innerHTML = `<p>${anrede},</p><p>${einleitung}</p>${emailTemplate}`;
+    document.getElementById('email-preview-modal').style.display = 'flex';
 }
 
 function closePreviewModal() {
-    document.getElementById('preview-modal').style.display = 'none';
+    document.getElementById('email-preview-modal').style.display = 'none';
 }
 
 function copyToClipboard() {
-    const emailContent = document.getElementById('email-content-output').innerText;
-    navigator.clipboard.writeText(emailContent).then(() => alert('E-Mail-Text in die Zwischenablage kopiert!'));
+  const content = document.getElementById('email-content-output').innerHTML;
+  navigator.clipboard.writeText(content.replace(/<[^>]*>/g, '')); 
+  alert('E-Mail-Text in die Zwischenablage kopiert!');
 }
 
 async function sendEmail() {
-    const serviceID = document.getElementById('emailjsServiceID').value;
-    const templateID = document.getElementById('emailjsTemplateID').value;
-    const userID = document.getElementById('emailjsUserID').value;
-
-    if (!serviceID || !templateID || !userID) {
-        alert('Bitte füllen Sie alle EmailJS Konfigurationsfelder aus.');
-        return;
-    }
-    if (!currentAnalysis || !currentAnalysis.kontakt.email) {
-        alert('Keine E-Mail-Adresse für den Versand gefunden.');
-        return;
-    }
-
-    const anrede = getSelectedAnrede();
-    const einleitung = currentAnalysis.personalisierteEinleitung;
-    const fullEmailBody = `<p>${anrede},</p><p>${einleitung}</p>${emailTemplate}`;
-    
-    const templateParams = {
-        to_name: anrede,
-        to_email: currentAnalysis.kontakt.email,
-        from_name: "Atakan Olcaysu",
-        subject: `Anfrage Konfigurator für ${currentAnalysis.firmenname || 'Ihren Betrieb'}`,
-        email_body: fullEmailBody,
-        firmenname: currentAnalysis.firmenname,
-        inhaber: currentAnalysis.inhaber
-    };
-
-    try {
-        await emailjs.send(serviceID, templateID, templateParams, userID);
-        alert('E-Mail erfolgreich gesendet!');
-        currentAnalysis.emailGesendet = true;
-        updateHistoryDisplay();
-        saveHistoryToStorage();
-    } catch (error) {
-        alert(`Fehler beim Senden der E-Mail: ${JSON.stringify(error)}`);
-    }
+    // Diese Funktion ist ein Platzhalter und nicht mit EmailJS verbunden.
+    alert('Diese Funktion ist derzeit nicht aktiv.');
 }
+
 
 function sendFromPreview() {
     sendEmail();
@@ -370,48 +330,53 @@ function sendFromPreview() {
 }
 
 function addToHistory(data) {
-    data.id = `analyse-${Date.now()}`;
-    data.timestamp = new Date().toLocaleString('de-DE');
-    analysisHistory.unshift(data);
-    updateHistoryDisplay();
+    const timestamp = new Date().toISOString();
+    const id = `analysis-${Date.now()}`;
+    const historyEntry = { id, timestamp, ...data };
+    
+    analysisHistory.unshift(historyEntry);
+    if (analysisHistory.length > 50) { 
+        analysisHistory.pop();
+    }
     saveHistoryToStorage();
+    updateHistoryDisplay();
 }
 
 function updateHistoryDisplay() {
     const historyList = document.getElementById('history-list');
+    if (!historyList) return;
     historyList.innerHTML = '';
-    analysisHistory.forEach(item => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `<strong>${item.firmenname || 'Unbekannte Firma'}</strong> (${item.timestamp}) <span class="status">${item.emailGesendet ? '✓ Gesendet' : ''}</span>`;
-        listItem.onclick = () => loadFromHistory(item.id);
-        historyList.appendChild(listItem);
+    analysisHistory.forEach(entry => {
+        const item = document.createElement('li');
+        item.textContent = `${new Date(entry.timestamp).toLocaleString('de-DE')}: ${entry.firmenname || 'Unbekannte Analyse'}`;
+        item.onclick = () => loadFromHistory(entry.id);
+        historyList.appendChild(item);
     });
 }
 
 function loadFromHistory(id) {
-    const item = analysisHistory.find(entry => entry.id === id);
-    if (item) {
-        currentAnalysis = item;
-        displayAnalysis(item);
+    const selectedAnalysis = analysisHistory.find(entry => entry.id === id);
+    if (selectedAnalysis) {
+        currentAnalysis = selectedAnalysis;
+        displayAnalysis(currentAnalysis);
         showMailGenerator();
+        const textParts = selectedAnalysis.originalText.split('\n\n');
+        document.getElementById('impressumText').value = textParts[0] || '';
+        document.getElementById('ueberUnsText').value = textParts[1] || '';
     }
 }
 
 function clearHistory() {
-    if (confirm('Möchten Sie wirklich die gesamte Historie löschen?')) {
+    if (confirm('Möchten Sie den gesamten Verlauf wirklich löschen?')) {
         analysisHistory = [];
-        localStorage.removeItem('glasereiAnalysisHistory');
+        saveHistoryToStorage();
         updateHistoryDisplay();
     }
 }
 
+// Event Listener
 document.addEventListener('DOMContentLoaded', () => {
-    ['openaiApiKey', 'emailjsServiceID', 'emailjsTemplateID', 'emailjsUserID'].forEach(id => {
-        const element = document.getElementById(id);
-        element.value = localStorage.getItem(id) || '';
-        element.addEventListener('input', (e) => localStorage.setItem(id, e.target.value));
-    });
-
     loadHistoryFromStorage();
     updateHistoryDisplay();
-}); 
+    document.getElementById('clear-history-button').addEventListener('click', clearHistory);
+});
