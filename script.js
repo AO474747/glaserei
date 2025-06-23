@@ -325,9 +325,9 @@ async function sendEmail() {
     }
 
     // Diese Werte sollten mit deinem EmailJS-Konto übereinstimmen
-    const serviceID = 'service_x5l4g8p'; // Dein Service-ID
-    const templateID = 'template_2h44i6l'; // Dein Template-ID
-    const publicKey = 'ia3YBTzlRJq2D9Bgx';    // Dein Public Key
+    const serviceID = 'service_t0x6h2t'; // Ersetzen Sie dies mit Ihrer Service-ID von EmailJS
+    const templateID = 'template_4yzhd0q'; // Ersetzen Sie dies mit Ihrer Template-ID von EmailJS
+    const publicKey = 'ia3YBTzlRJq2D9Bgx';    // Ersetzen Sie dies mit Ihrem Public Key von https://dashboard.emailjs.com/admin/account
 
     const anrede = getSelectedAnrede();
     const einleitung = currentAnalysis.personalisierteEinleitung;
