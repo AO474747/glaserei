@@ -497,6 +497,7 @@ async function generateMailWithSelectedEinleitung() {
   document.getElementById('previewMailBtn').style.display = 'inline-block';
   document.getElementById('copyMailBtn').style.display = 'inline-block';
   document.getElementById('sendMailBtn').style.display = 'inline-block';
+  document.getElementById('configTestBtn').style.display = 'inline-block';
   
   // E-Mail-Daten für Vorschau speichern
   window.previewEmailData = {
@@ -559,18 +560,23 @@ function getSelectedAnrede() {
 // E-Mail-Generator anzeigen
 function showMailGenerator() {
   const mailSection = document.getElementById('mail-generator-section');
-  const changeAnredeBtn = document.getElementById('changeAnredeBtn');
+  const generateBtn = document.getElementById('generateMailBtn');
   const previewBtn = document.getElementById('previewMailBtn');
   const copyBtn = document.getElementById('copyMailBtn');
   const sendBtn = document.getElementById('sendMailBtn');
   const configTestBtn = document.getElementById('configTestBtn');
-  
+
+  // Gesamten Bereich anzeigen
   mailSection.style.display = 'block';
-  changeAnredeBtn.style.display = 'none'; // Button ausblenden
-  previewBtn.style.display = 'inline-block';
-  copyBtn.style.display = 'inline-block';
-  sendBtn.style.display = 'inline-block';
-  configTestBtn.style.display = 'inline-block';
+  
+  // Nur den "Generieren"-Button anzeigen
+  generateBtn.style.display = 'inline-block';
+
+  // Alle anderen Buttons verstecken, bis die Mail generiert ist
+  previewBtn.style.display = 'none';
+  copyBtn.style.display = 'none';
+  sendBtn.style.display = 'none';
+  configTestBtn.style.display = 'none'; // Test-Button auch erstmal ausblenden
 }
 
 // E-Mail-Vorschau anzeigen
