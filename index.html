@@ -55,7 +55,10 @@
       <div class="button-group">
         <button onclick="showPreview()">👁️ Vorschau</button>
         <button onclick="copyToClipboard()">📋 Kopieren</button>
-        <button onclick="sendEmail()">📤 Senden</button>
+        <div class="email-actions">
+          <button onclick="sendEmail()" class="send-button">📧 E-Mail senden (EmailJS)</button>
+          <button onclick="sendEmailAlternative()" class="send-button alternative">📧 E-Mail senden (Mail-Client)</button>
+        </div>
       </div>
     </div>
     

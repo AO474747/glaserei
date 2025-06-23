@@ -318,6 +318,42 @@ function copyToClipboard() {
   alert('E-Mail-Text in die Zwischenablage kopiert!');
 }
 
+// Alternative E-Mail-Funktion ohne EmailJS
+async function sendEmailAlternative() {
+    if (!currentAnalysis || !currentAnalysis.kontakt.email) {
+        alert('Keine E-Mail-Adresse für den Versand gefunden.');
+        return;
+    }
+
+    const anrede = getSelectedAnrede();
+    const einleitung = currentAnalysis.personalisierteEinleitung;
+    
+    // Erstelle den vollständigen E-Mail-Inhalt
+    const emailContent = `
+        ${anrede},
+        
+        ${einleitung}
+        
+        ${emailTemplate}
+        
+        Mit freundlichen Grüßen
+        Ihr Glaserei-Team
+    `;
+
+    // Erstelle E-Mail-Link für den Standard-Mail-Client
+    const subject = encodeURIComponent('Angebot für Ihre Glaserei-Dienstleistungen');
+    const body = encodeURIComponent(emailContent);
+    const to = currentAnalysis.kontakt.email;
+    
+    const mailtoLink = `mailto:${to}?subject=${subject}&body=${body}`;
+    
+    // Öffne den Standard-Mail-Client
+    window.open(mailtoLink);
+    
+    alert('E-Mail-Client wird geöffnet. Bitte überprüfen Sie die E-Mail und senden Sie sie manuell ab.');
+}
+
+// Originale EmailJS-Funktion
 async function sendEmail() {
     if (!currentAnalysis || !currentAnalysis.kontakt.email) {
         alert('Keine E-Mail-Adresse für den Versand gefunden.');
