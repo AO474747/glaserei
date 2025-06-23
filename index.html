@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glaserei-Daten-Extraktor</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .input-section {
+      margin-bottom: 2rem;
+    }
+    .input-section h3 {
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+    }
+    textarea {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    button {
+      display: inline-block;
+      background-color: #007bff;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      margin-top: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    pre {
+      margin-top: 2rem;
+      background-color: #f1f1f1;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+    
+    /* Styles für die Historie-Tabelle */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 1rem;
+    }
+    
+    .history-table th {
+      background-color: #f8f9fa;
+      padding: 12px 8px;
+      text-align: left;
+      border-bottom: 2px solid #dee2e6;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .history-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .history-table tbody tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    
+    .history-table tbody tr:hover {
+      background-color: #e9ecef;
+    }
+    
+    .history-container {
+      max-height: 500px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+    
+    .email-status-generated {
+      color: #28a745;
+      font-weight: 600;
+    }
+    
+    .email-status-pending {
+      color: #6c757d;
+    }
+    
+    .history-info {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #6c757d;
+      text-align: center;
+    }
+    
+    .api-key-section {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .api-key-input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Glaserei-Daten analysieren</h1>
+    
+    <!-- API Key Section -->
+    <div class="api-key-section">
+      <h3>🔑 OpenAI API Key</h3>
+      <p>Bitte geben Sie Ihren OpenAI API Key ein, um die Analyse zu starten:</p>
+      <input type="password" id="openaiApiKey" class="api-key-input" placeholder="sk-...">
+      <p style="font-size: 0.9em; color: #666; margin-top: 0.5rem;">
+        Ihr API Key wird nur lokal gespeichert und nicht an uns übertragen.
+      </p>
+    </div>
+    
+    <div class="input-section">
+      <h3>Impressum</h3>
+      <textarea id="impressumText" rows="8" placeholder="Füge hier den Text aus dem Impressum ein..."></textarea>
+    </div>
+    
+    <div class="input-section">
+      <h3>Kundeninformationen / Über uns</h3>
+      <textarea id="kundeninfoText" rows="8" placeholder="Füge hier den Text aus 'Über uns' oder Kundeninformationen ein..."></textarea>
+    </div>
+    
+    <button onclick="analyseGlasereiDaten()">Daten analysieren</button>
+    <div id="output"></div>
+
+    <div id="mail-generator-section" style="display: none; margin-top: 20px;">
+      <button id="generateMailBtn" style="display: none;">✉️ Akquise-Mail generieren</button>
+      <button id="changeAnredeBtn" style="display: none; background-color: #ffc107; color: black;">👤 Anrede ändern</button>
+      <button id="previewMailBtn" style="display: none; background-color: #17a2b8;">👁️ E-Mail Vorschau</button>
+      <button id="copyMailBtn" style="display: none; background-color: #28a745;">📋 In Zwischenablage kopieren</button>
+      <button id="sendMailBtn" style="display: none; background-color: #dc3545;">📤 E-Mail senden</button>
+      
+      <button id="configTestBtn" style="display: none; background-color: #6f42c1; color: white;">🔧 EmailJS-Konfiguration testen</button>
+      
+      <div id="mail-output" style="margin-top: 15px; white-space: pre-wrap; background: #f1f1f1; padding: 1rem; border-radius: 6px; font-family: monospace;"></div>
+      
+      <!-- E-Mail Vorschau Modal -->
+      <div id="previewModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div style="background-color: white; margin: 5% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; max-height: 80%; overflow-y: auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">📧 E-Mail Vorschau</h3>
+            <button onclick="closePreviewModal()" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">✕ Schließen</button>
+          </div>
+          
+          <div style="border: 1px solid #ddd; padding: 20px; border-radius: 6px; background: #f9f9f9;">
+            <div style="margin-bottom: 15px;">
+              <strong>An:</strong> <span id="preview-to"></span><br>
+              <strong>Betreff:</strong> <span id="preview-subject"></span>
+            </div>
+            <div id="preview-content" style="font-family: Arial, sans-serif; line-height: 1.5; color: #222; background: white; padding: 20px; border-radius: 4px; border: 1px solid #eee;"></div>
+          </div>
+          
+          <div style="margin-top: 20px; text-align: center;">
+            <button onclick="sendFromPreview()" style="background-color: #dc3545; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-right: 10px;">📤 E-Mail senden</button>
+            <button onclick="closePreviewModal()" style="background-color: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px;">❌ Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function() {
+      emailjs.init("ia3YBTzlRJq2D9Bgx");
+    })();
+  </script>
+  <script src="emailjs-config.js"></script>
+  <script src="netlify-script.js"></script>
+  
+  <div class="container" style="margin-top: 2rem;">
+    <h2>Erfassungs-Verlauf</h2>
+    <div id="history-output">
+      <p>Bisher keine Einträge vorhanden.</p>
+    </div>
+  </div>
+</body>
+</html> 
