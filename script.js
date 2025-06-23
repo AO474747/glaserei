@@ -319,10 +319,40 @@ function copyToClipboard() {
 }
 
 async function sendEmail() {
-    // Diese Funktion ist ein Platzhalter und nicht mit EmailJS verbunden.
-    alert('Diese Funktion ist derzeit nicht aktiv.');
-}
+    if (!currentAnalysis || !currentAnalysis.kontakt.email) {
+        alert('Keine E-Mail-Adresse für den Versand gefunden.');
+        return;
+    }
 
+    const serviceID = 'service_x5l4g8p';
+    const templateID = 'template_2h44i6l'; 
+    const publicKey = 'ia3YBTzlRJq2D9Bgx';
+
+    const anrede = getSelectedAnrede();
+    const einleitung = currentAnalysis.personalisierteEinleitung;
+    
+    // Erstelle den vollständigen HTML-Body für die Vorlage
+    const emailBody = `
+        <p>${anrede},</p>
+        <p>${einleitung}</p>
+        ${emailTemplate}
+    `;
+
+    const templateParams = {
+        to_email: currentAnalysis.kontakt.email,
+        betreff: `Ihr Online-Konfigurator für Glas-Anfragen | ${currentAnalysis.firmenname || 'Ihr Betrieb'}`,
+        email_body: emailBody,
+    };
+
+    try {
+        emailjs.init({ publicKey: publicKey });
+        await emailjs.send(serviceID, templateID, templateParams);
+        alert('E-Mail erfolgreich gesendet!');
+    } catch (error) {
+        console.error('Fehler beim Senden der E-Mail:', error);
+        alert(`Fehler beim Senden der E-Mail: ${JSON.stringify(error)}`);
+    }
+}
 
 function sendFromPreview() {
     sendEmail();
