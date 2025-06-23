@@ -328,29 +328,43 @@ async function sendEmailAlternative() {
     const anrede = getSelectedAnrede();
     const einleitung = currentAnalysis.personalisierteEinleitung;
     
-    // Erstelle den vollständigen E-Mail-Inhalt
+    // Erstelle den vollständigen E-Mail-Inhalt (nur Text, kein HTML)
     const emailContent = `
-        ${anrede},
-        
-        ${einleitung}
-        
-        ${emailTemplate}
-        
-        Mit freundlichen Grüßen
-        Ihr Glaserei-Team
-    `;
+${anrede},
 
-    // Erstelle E-Mail-Link für den Standard-Mail-Client
-    const subject = encodeURIComponent('Angebot für Ihre Glaserei-Dienstleistungen');
-    const body = encodeURIComponent(emailContent);
-    const to = currentAnalysis.kontakt.email;
-    
-    const mailtoLink = `mailto:${to}?subject=${subject}&body=${body}`;
-    
-    // Öffne den Standard-Mail-Client
-    window.open(mailtoLink);
-    
-    alert('E-Mail-Client wird geöffnet. Bitte überprüfen Sie die E-Mail und senden Sie sie manuell ab.');
+${einleitung}
+
+${emailTemplate.replace(/<[^>]*>/g, '')}
+
+Mit freundlichen Grüßen
+Ihr Glaserei-Team
+    `.trim();
+
+    try {
+        // Kopiere E-Mail-Inhalt in die Zwischenablage
+        await navigator.clipboard.writeText(emailContent);
+        
+        // Erstelle eine benutzerfreundliche Nachricht
+        const message = `✅ E-Mail-Inhalt wurde in die Zwischenablage kopiert!
+
+📧 Empfänger: ${currentAnalysis.kontakt.email}
+📝 Betreff: Angebot für Ihre Glaserei-Dienstleistungen
+
+📋 Nächste Schritte:
+1. Öffnen Sie Ihren E-Mail-Client
+2. Fügen Sie den Inhalt ein (Cmd+V / Ctrl+V)
+3. Senden Sie die E-Mail
+
+Der E-Mail-Inhalt ist jetzt in Ihrer Zwischenablage verfügbar.`;
+        
+        alert(message);
+        
+    } catch (error) {
+        console.error('Fehler beim Kopieren in die Zwischenablage:', error);
+        
+        // Fallback: Zeige den Inhalt in einem Modal
+        showEmailContentModal(emailContent, currentAnalysis.kontakt.email);
+    }
 }
 
 // Originale EmailJS-Funktion
@@ -521,4 +535,71 @@ async function testEmailJS() {
         console.error('EmailJS-Test fehlgeschlagen:', error);
         alert(`EmailJS-Test fehlgeschlagen: ${error.text || error.message}`);
     }
+}
+
+// Modal-Funktion für E-Mail-Inhalt (Fallback)
+function showEmailContentModal(emailContent, recipientEmail) {
+    // Erstelle Modal-Overlay
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
+    
+    // Erstelle Modal-Inhalt
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    `;
+    
+    modalContent.innerHTML = `
+        <h3 style="margin-top: 0; color: #333;">📧 E-Mail-Inhalt kopieren</h3>
+        <p><strong>Empfänger:</strong> ${recipientEmail}</p>
+        <p><strong>Betreff:</strong> Angebot für Ihre Glaserei-Dienstleistungen</p>
+        <textarea 
+            style="width: 100%; height: 300px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; margin: 15px 0;"
+            readonly
+        >${emailContent}</textarea>
+        <div style="text-align: center;">
+            <button onclick="copyEmailContent()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-right: 10px;">
+                📋 In Zwischenablage kopieren
+            </button>
+            <button onclick="closeEmailModal()" style="background: #f5576c; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">
+                ✕ Schließen
+            </button>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Globale Funktionen für die Buttons
+    window.copyEmailContent = async function() {
+        try {
+            await navigator.clipboard.writeText(emailContent);
+            alert('✅ E-Mail-Inhalt wurde in die Zwischenablage kopiert!');
+        } catch (error) {
+            alert('❌ Fehler beim Kopieren. Bitte markieren Sie den Text manuell und kopieren Sie ihn.');
+        }
+    };
+    
+    window.closeEmailModal = function() {
+        document.body.removeChild(modal);
+        delete window.copyEmailContent;
+        delete window.closeEmailModal;
+    };
 }
